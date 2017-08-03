@@ -379,7 +379,7 @@ public class as3992_native implements IUHFService {
     public byte[] read_area(int area, int addr, int count, int passwd) {
         byte[] res = null;
         do {
-            if (mEpc != null && select_card(mEpc) < 0) {
+            if (mEpc != null && select_card(mEpc,true) < 0) {
                 Log.e("as3992", "read select failed");
                 continue;
             }
@@ -473,7 +473,7 @@ public class as3992_native implements IUHFService {
         }
         int i = -1;
         do {
-            if (mEpc != null && select_card(mEpc) < 0) {
+            if (mEpc != null && select_card(mEpc,true) < 0) {
                 Log.e("as3992", "read select failed");
                 continue;
             }
@@ -567,7 +567,7 @@ public class as3992_native implements IUHFService {
     }
 
 
-    public int select_card(byte[] epc) {
+    public int select_card(byte[] epc, boolean mFlag) {
         mEpc = epc;
         byte[] cmd = new byte[3 + epc.length];
         cmd[0] = 0x33;
@@ -601,7 +601,7 @@ public class as3992_native implements IUHFService {
         }
     }
 
-    public int select_card(String epc) {
+    public int select_card(String epc, boolean mFlag) {
         byte[] eepc;
         StringTokenizer sepc = new StringTokenizer(epc);
         eepc = new byte[sepc.countTokens()];
@@ -617,7 +617,7 @@ public class as3992_native implements IUHFService {
         int i = 0;
         do {
             i++;
-            select_card = select_card(eepc);
+            select_card = select_card(eepc,mFlag);
         } while (select_card != 0 && i < 5);
 
         if (select_card != 0) {

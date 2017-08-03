@@ -65,6 +65,9 @@ public class ByteCharStrUtils {
      * 把16进制字符串转换成字节数组
      */
     public static byte[] toByteArray(String hex) {
+        if (hex == null) {
+            return null;
+        }
         int len = (hex.length() / 2);
         byte[] result = new byte[len];
         char[] achar = hex.toCharArray();

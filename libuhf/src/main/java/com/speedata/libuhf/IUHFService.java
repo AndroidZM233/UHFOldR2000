@@ -77,8 +77,8 @@ public interface IUHFService {
 
 
     //选中要进行操作的 epc 标签
-    public int select_card(byte[] epc);
-    public int select_card(String epc);
+    public int select_card(byte[] epc,boolean mFlag);
+    public int select_card(String epc,boolean mFlag);
 
 
     //设置天线功率

@@ -7,7 +7,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.serialport.DeviceControl;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.speedata.libuhf.bean.INV_TIME;
@@ -429,9 +428,14 @@ public class XinLianQilian implements IUHFService {
     public int write_area(int area, int addr, int passwd, byte[] content) {
         Log.d(TAG, "write_area: start22222");
         try {
+//            byte[] rpaswd = new byte[4];
+//            for (int i = 0; i < 4; i++) {
+//                rpaswd[i] = (byte) (passwd >>> (24 - i * 8));
+//            }
             byte[] rpaswd = new byte[4];
-            for (int i = 0; i < 4; i++) {
-                rpaswd[i] = (byte) (passwd >>> (24 - i * 8));
+            String mPassword = passwd + "";
+            if (!mPassword.equals("")) {
+                Mreader.Str2Hex(mPassword, mPassword.length(), rpaswd);
             }
             Reader.READER_ERR er = Reader.READER_ERR.MT_OK_ERR;
             int trycount = 3;
@@ -537,43 +541,39 @@ public class XinLianQilian implements IUHFService {
 
 
     //选中要进行操作的 epc 标签
-    public int select_card(byte[] epc) {
-        if (epc == null) {
+    public int select_card(byte[] epc, boolean mFlag) {
+        Reader.READER_ERR er;
+        try {
+            if (mFlag) {
+                if (epc == null) {
+                    return -1;
+                }
+                g2tf = Mreader.new TagFilter_ST();
+                g2tf.fdata = epc;
+                g2tf.flen = epc.length * 8;
+                g2tf.isInvert = 0;
+                g2tf.bank = 1;
+                g2tf.startaddr = 32;
+                er = Mreader.ParamSet(Reader.Mtr_Param.MTR_PARAM_TAG_FILTER, g2tf);
+            } else {
+                er = Mreader.ParamSet(Reader.Mtr_Param.MTR_PARAM_TAG_FILTER, null);
+            }
+
+            if (er != Reader.READER_ERR.MT_OK_ERR) {
+                return -1;
+            }
+            return 0;
+        } catch (Exception e) {
+            e.printStackTrace();
             return -1;
         }
-        g2tf = Mreader.new TagFilter_ST();
-        g2tf.fdata = epc;
-        g2tf.flen = epc.length * 8;
-        g2tf.isInvert = 0;
-        g2tf.bank = 1;
-        g2tf.startaddr = 32;
-        Reader.READER_ERR er = Mreader.ParamSet(Reader.Mtr_Param.MTR_PARAM_TAG_FILTER, g2tf);
-        if (er != Reader.READER_ERR.MT_OK_ERR) {
-            return -1;
-        }
-        return 0;
+
     }
 
-    public int select_card(String epc) {
-        if (TextUtils.isEmpty(epc)) {
-            return -1;
-        }
+    public int select_card(String epc, boolean mFlag) {
         Log.d(TAG, "select_card: start");
-//        byte[] eepc;
-//        StringTokenizer sepc = new StringTokenizer(epc);
-//        eepc = new byte[sepc.countTokens()];
-//        int index = 0;
-//        while (sepc.hasMoreTokens()) {
-//            try {
-//                eepc[index++] = (byte) Integer.parseInt(sepc.nextToken(), 16);
-//            } catch (NumberFormatException p) {
-//                Log.d(TAG, "select_card: failed NumberFormatException");
-//                return -1;
-//            }
-//        }
-
         byte[] writeByte = ByteCharStrUtils.toByteArray(epc);
-        if (select_card(writeByte) != 0) {
+        if (select_card(writeByte, mFlag) != 0) {
             Log.d(TAG, "select_card: failed");
             return -1;
         }

@@ -19,6 +19,7 @@ import com.speedata.libutils.ConfigUtils;
 import com.speedata.libutils.ReadBean;
 import com.uhf_sdk.linkage.Linkage;
 import com.uhf_sdk.model.Inventory_Data;
+import com.uhf_sdk.model.Parameter;
 import com.uhf_sdk.model.Value_c;
 import com.uhf_sdk.uhfpower.UhfPowaer;
 
@@ -261,7 +262,7 @@ public class FLX_QiLian implements IUHFService {
             return null;
         }
         char[] ReadText;
-        char[] access_password = getCharsPassword(passwd);
+        char[] access_password = Linkage.s2char(String.valueOf(passwd));
 
         ReadText = Linkage.read_Label(open_Com, area, addr, count / 2, access_password,
                 result);
@@ -301,8 +302,9 @@ public class FLX_QiLian implements IUHFService {
         String hexs = ByteCharStrUtils.b2hexs(v, v.length);
         return hexs;
     }
-    // byte转char
 
+
+    // byte转char
     private static char[] byteToChar(byte[] data, int length) {
         if (length % 2 == 0) {
             char[] chars = new char[length / 4];
@@ -406,28 +408,44 @@ public class FLX_QiLian implements IUHFService {
      * 启用掩码：返回值0：为成功，其他均为失败 注意：1、当需要启用掩码时，注意当掩码长度为0时，掩码启用无效的，相当于取消了掩码 2、设置掩码（掩码长度不为0的）成功后，在不退出程序，不执行第一条的情况下，该掩码一直有效。
      * 3、取消掩码：应设置掩码长度为0，并在启用掩码状态读取一次，本模块无取消掩码函数
      */
-    public int select_card(byte[] epc) {
-
-        int epc_area = 1;//1:为EPC区域。2：为TID区域。3：为USER区域。
-        int epc_lenght = epc.length / 4;
-        int epc_add = 2;
-        int mask_sel = 0;//注意：该参数必须和模块中参数的sel值保持一致（当前为模块初始值）
-        int mask_session = 0;//注意：该参数必须和模块中参数的session值保持一致（当前为模块初始值）
-
-
-        if (epc.length > 0) {
-            return Linkage.set_Mask(open_Com, mask_sel, mask_session, epc_area, epc_add, epc_lenght,
-                    byteToChar(epc, epc.length));
+    public int select_card(byte[] epc, boolean mFlag) {
+        try {
+            int epc_area = 1;//1:为EPC区域。2：为TID区域。3：为USER区域。
+            int epc_add = 2;
+            int mask_sel = 0;//注意：该参数必须和模块中参数的sel值保持一致（当前为模块初始值）
+            int mask_session = 0;//注意：该参数必须和模块中参数的session值保持一致（当前为模块初始值）
+            int epc_lenght = 0;
+            if (mFlag) {
+                if (epc == null) {
+                    return -1;
+                }
+                epc_lenght = epc.length / 2;
+            } else {
+                epc_lenght = 0;
+            }
+            String b2hexs = ByteCharStrUtils.b2hexs(epc, epc.length);
+            char[] mask_input = Linkage.s2char(b2hexs);
+            int setMask = Linkage.set_Mask(open_Com, mask_sel, mask_session, epc_area, epc_add, epc_lenght,
+                    mask_input);
+            Parameter mParameter = new Parameter();
+            int status = Linkage.get_Query(open_Com, mParameter);
+            if (status == 0) {
+                Linkage.set_Query(open_Com, 0, 0, 1, 0, 0, mParameter.getTarget(), mParameter.getQ());
+            }
+            return setMask;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
         }
-        return -1;
     }
 
-    public int select_card(String epc) {
+    public int select_card(String epc, boolean mFlag) {
         byte[] writeByte = ByteCharStrUtils.toByteArray(epc);
-        if (select_card(writeByte) != 0) {
+        if (select_card(writeByte, mFlag) != 0) {
             return -1;
         }
         return 0;
+
     }
 
     //设置密码
@@ -439,6 +457,7 @@ public class FLX_QiLian implements IUHFService {
         byte[] nps = getBytes(new_pass);
         return write_area(0, which * 2, (int) cp, nps);
     }
+
 
     /**
      * @param power 取值为19到30之间,小于19的值设置成功后，功率依然是19，大于30的功率设置成功后，功率依然是30 power最大值30，最小值19

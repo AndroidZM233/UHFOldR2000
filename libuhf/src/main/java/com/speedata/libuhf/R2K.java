@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.serialport.DeviceControl;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.speedata.libuhf.bean.INV_TIME;
@@ -686,7 +685,7 @@ public class R2K implements IUHFService {
                 break;
         }
         ReadParms jk = new ReadParms();
-        int rv = lk.Radio_ReadTag(count / 2, addr, bk, passwd, jk, 1);
+        int rv = lk.Radio_ReadTag(count / 2, addr, bk, passwd, jk, flag);
         if ((rv == Result.RFID_STATUS_OK.getValue()) && (jk.ReadData != null)) {
             byte[] s = new byte[count];
             for (int i = 0; i < count / 2; i++) {
@@ -697,6 +696,7 @@ public class R2K implements IUHFService {
         }
         Log.e("r2000_kt45", "reval is " + res.value);
         return null;
+
     }
 
     public String read_area(int area, String str_addr
@@ -838,7 +838,7 @@ public class R2K implements IUHFService {
 //            }
             String s = ByteCharStrUtils.b2hexs(content, content.length);
             char[] WriteText = getLinkage().s2char(s);
-            status = getLinkage().Radio_WriteTag(content.length / 2, addr, bk, passwd, WriteText, 1);
+            status = getLinkage().Radio_WriteTag(content.length / 2, addr, bk, passwd, WriteText, flag);
         }
         return status;
     }
@@ -901,7 +901,7 @@ public class R2K implements IUHFService {
                     break;
             }
             char[] WriteText = getLinkage().s2char(cnt);
-            status = getLinkage().Radio_WriteTag(count / 2, addr, bk, passwd, WriteText, 1);
+            status = getLinkage().Radio_WriteTag(count / 2, addr, bk, passwd, WriteText, flag);
         }
         return status;
     }
@@ -959,25 +959,26 @@ public class R2K implements IUHFService {
     private volatile int flag = 0;
 
     @Override
-    public int select_card(byte[] epc) {
-        if (epc == null) {
-            return -1;
-        }
-        flag = 2;
-        int rv = SetMask(getLinkage(), epc, epc.length * 2);
-        if (rv != 0) {
-            Log.e("r2000_kt45", "SetMask failed");
-            return -1;
+    public int select_card(byte[] epc, boolean mFlag) {
+        if (mFlag) {
+            if (epc == null) {
+                return -1;
+            }
+            int rv = SetMask(getLinkage(), epc, epc.length * 2);
+            if (rv != 0) {
+                Log.e("r2000_kt45", "SetMask failed");
+                return -1;
+            }
+            flag = 1;
+        } else {
+            flag = 0;
         }
         return 0;
     }
 
-    public int select_card(String epc) {
-        if (TextUtils.isEmpty(epc)) {
-            return -1;
-        }
+    public int select_card(String epc, boolean mFlag) {
         byte[] writeByte = ByteCharStrUtils.toByteArray(epc);
-        if (select_card(writeByte) != 0) {
+        if (select_card(writeByte, mFlag) != 0) {
             return -1;
         }
         return 0;
