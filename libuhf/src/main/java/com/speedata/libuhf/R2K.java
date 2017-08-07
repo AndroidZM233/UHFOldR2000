@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.serialport.DeviceControl;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.speedata.libuhf.bean.INV_TIME;
@@ -265,7 +266,7 @@ public class R2K implements IUHFService {
 //        getLinkage().Radio_RetrieveAttache();
 //        getLinkage().Radio_ConnectTo();
 
-        SystemClock.sleep(1000);
+        SystemClock.sleep(100);
         getLinkage().Radio_Initialization();
         int result = getLinkage().open_serial(SERIALPORT);
 
@@ -664,7 +665,7 @@ public class R2K implements IUHFService {
 //        return null;
 //    }
 
-    public byte[] read_area(int area, int addr, int count, int passwd) {
+    public byte[] read_area(int area, int addr, int count, String passwd) {
         Rfid_Value res = new Rfid_Value();
         if ((area > 3) || (area < 0) || ((count % 2) != 0)) {
             return null;
@@ -685,7 +686,8 @@ public class R2K implements IUHFService {
                 break;
         }
         ReadParms jk = new ReadParms();
-        int rv = lk.Radio_ReadTag(count / 2, addr, bk, passwd, jk, flag);
+        long passwdL = Long.parseLong(passwd, 16);
+        int rv = lk.Radio_ReadTag(count / 2, addr, bk, passwdL, jk, flag);
         if ((rv == Result.RFID_STATUS_OK.getValue()) && (jk.ReadData != null)) {
             byte[] s = new byte[count];
             for (int i = 0; i < count / 2; i++) {
@@ -701,30 +703,30 @@ public class R2K implements IUHFService {
 
     public String read_area(int area, String str_addr
             , String str_count, String str_passwd) {
+        if (TextUtils.isEmpty(str_passwd)) {
+            return null;
+        }
+        if (!ByteCharStrUtils.IsHex(str_passwd)) {
+            return null;
+        }
         int num_addr;
         int num_count;
-        long passwd;
         try {
             num_addr = Integer.parseInt(str_addr, 16);
             num_count = Integer.parseInt(str_count, 10);
-            passwd = Long.parseLong(str_passwd, 16);
         } catch (NumberFormatException p) {
             return null;
         }
-        String res = read_card(area, num_addr, num_count * 2, (int) passwd);
+        String res = read_card(area, num_addr, num_count * 2, str_passwd);
         return res;
     }
 
-    private String read_card(int area, int addr, int count, int passwd) {
+    private String read_card(int area, int addr, int count, String passwd) {
         byte[] v = read_area(area, addr, count, passwd);
         if (v == null) {
             return null;
         }
         String hexs = ByteCharStrUtils.b2hexs(v, v.length);
-//        String j = new String();
-//        for (byte i : v) {
-//            j += String.format("%02x ", i);
-//        }
         return hexs;
     }
 
@@ -812,8 +814,10 @@ public class R2K implements IUHFService {
         }
     }
 
-    public int write_area(int area, int addr, int passwd, byte[] content) {
-
+    public int write_area(int area, int addr, String passwd, byte[] content) {
+        if ((content.length % 2) != 0) {
+            return -3;
+        }
         int bk = USER_A;
         int status = Result.RFID_ERROR_FAILURE.getValue();
 
@@ -838,50 +842,34 @@ public class R2K implements IUHFService {
 //            }
             String s = ByteCharStrUtils.b2hexs(content, content.length);
             char[] WriteText = getLinkage().s2char(s);
-            status = getLinkage().Radio_WriteTag(content.length / 2, addr, bk, passwd, WriteText, flag);
+            long passwdL = Long.parseLong(passwd, 16);
+            status = getLinkage().Radio_WriteTag(content.length / 2, addr, bk, passwdL, WriteText, flag);
         }
         return status;
     }
 
     public int write_area(int area, String addr, String pwd, String count, String content) {
+        if (TextUtils.isEmpty(pwd)) {
+            return -3;
+        }
+        if (!ByteCharStrUtils.IsHex(pwd)) {
+            return -3;
+        }
         int num_addr;
         int num_count;
-        long passwd;
         try {
             num_addr = Integer.parseInt(addr, 16);
             num_count = Integer.parseInt(count, 10);
-            passwd = Long.parseLong(pwd, 16);
         } catch (NumberFormatException p) {
             return -3;
         }
-//        content = content.replace(" ", "");
         int rev = write_card(area, num_addr, num_count * 2,
-                (int) passwd, content);
+                pwd, content);
         return rev;
     }
 
 
-    public int write_card(int area, int addr, int count, int passwd, String cnt) {
-//        byte[] cf;
-//        StringTokenizer cn = new StringTokenizer(cnt);
-//        if (cn.countTokens() < count) {
-//            return -2;
-//        }
-//        cf = new byte[count];
-//        int index = 0;
-//        while (cn.hasMoreTokens() && (index < count)) {
-//            try {
-//                int k = Integer.parseInt(cn.nextToken(), 16);
-//                if (k > 0xff) {
-//                    throw new NumberFormatException("can't bigger than 0xff");
-//                }
-//                cf[index++] = (byte) k;
-//            } catch (NumberFormatException p) {
-//                return -3;
-//            }
-//        }
-
-//        byte[] cf = ByteCharStrUtils.toByteArray(cnt);
+    public int write_card(int area, int addr, int count, String passwd, String cnt) {
         int bk = USER_A;
         int status = Result.RFID_ERROR_FAILURE.getValue();
 
@@ -901,7 +889,8 @@ public class R2K implements IUHFService {
                     break;
             }
             char[] WriteText = getLinkage().s2char(cnt);
-            status = getLinkage().Radio_WriteTag(count / 2, addr, bk, passwd, WriteText, flag);
+            long passwdL = Long.parseLong(passwd, 16);
+            status = getLinkage().Radio_WriteTag(count / 2, addr, bk, passwdL, WriteText, flag);
         }
         return status;
     }
@@ -959,12 +948,12 @@ public class R2K implements IUHFService {
     private volatile int flag = 0;
 
     @Override
-    public int select_card(byte[] epc, boolean mFlag) {
+    public int select_card(int bank,byte[] epc, boolean mFlag) {
         if (mFlag) {
             if (epc == null) {
                 return -1;
             }
-            int rv = SetMask(getLinkage(), epc, epc.length * 2);
+            int rv = SetMask(getLinkage(), epc, epc.length * 2,bank);
             if (rv != 0) {
                 Log.e("r2000_kt45", "SetMask failed");
                 return -1;
@@ -976,9 +965,9 @@ public class R2K implements IUHFService {
         return 0;
     }
 
-    public int select_card(String epc, boolean mFlag) {
+    public int select_card(int bank,String epc, boolean mFlag) {
         byte[] writeByte = ByteCharStrUtils.toByteArray(epc);
-        if (select_card(writeByte, mFlag) != 0) {
+        if (select_card(bank,writeByte, mFlag) != 0) {
             return -1;
         }
         return 0;
@@ -1015,7 +1004,7 @@ public class R2K implements IUHFService {
         }
     }
 
-    private int SetMask(Linkage link, byte[] bytetemp, int length) {
+    private int SetMask(Linkage link, byte[] bytetemp, int length,int bank) {
         int status = Result.RFID_STATUS_OK.getValue();
         status = link.Radio_SetCurrentSingulationAlgorithm(0);
         if (status != Result.RFID_STATUS_OK.getValue())
@@ -1045,7 +1034,7 @@ public class R2K implements IUHFService {
         SelectCriteria selectCriteria = new SelectCriteria();
         selectCriteria.countCriteria = 1;
         // bank
-        selectCriteria.mask_bank = 1;
+        selectCriteria.mask_bank = bank;
         // offset
         selectCriteria.mask_offset = offset;
         // count

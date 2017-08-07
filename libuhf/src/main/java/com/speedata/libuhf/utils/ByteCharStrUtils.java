@@ -87,4 +87,22 @@ public class ByteCharStrUtils {
         byte b = (byte) "0123456789ABCDEF".indexOf(c);
         return b;
     }
+
+    /**
+     * 判断十六进制
+     */
+    public static boolean IsHex(String str) {
+        boolean b = false;
+
+        char[] c = str.toUpperCase().toCharArray();
+        for (char aC : c) {
+            if ((aC >= '0' && aC <= '9') || (aC >= 'A' && aC <= 'F')) {
+                b = true;
+            } else {
+                b = false;
+                break;
+            }
+        }
+        return b;
+    }
 }

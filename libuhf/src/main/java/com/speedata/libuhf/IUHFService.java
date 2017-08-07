@@ -66,19 +66,19 @@ public interface IUHFService {
      * @param passwd
      * @return
      */
-    public byte[] read_area(int area, int addr, int count, int passwd);
+    public byte[] read_area(int area, int addr, int count, String passwd);
     public String read_area(int area, String str_addr
             , String str_count, String str_passwd);
 
 
     //把 content 中的数据写到标签 area 区中 addr（以 word 计算）开始的位 置。
-    public int write_area(int area, int addr, int passwd, byte[] content);
+    public int write_area(int area, int addr, String passwd, byte[] content);
     public int write_area(int area, String addr, String pwd, String count, String content);
 
 
     //选中要进行操作的 epc 标签
-    public int select_card(byte[] epc,boolean mFlag);
-    public int select_card(String epc,boolean mFlag);
+    public int select_card(int bank,byte[] epc,boolean mFlag);
+    public int select_card(int bank,String epc,boolean mFlag);
 
 
     //设置天线功率

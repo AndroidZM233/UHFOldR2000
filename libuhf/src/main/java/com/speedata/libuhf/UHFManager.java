@@ -90,7 +90,7 @@ public class UHFManager {
                 //获取当前电量
                 int level = intent.getIntExtra("level", 0);
                 if (level < 20) {
-//                    iuhfService.CloseDev();
+                    iuhfService.CloseDev();
                     Handler handler = new Handler(Looper.getMainLooper());
                     handler.post(new Runnable() {
                         @Override
