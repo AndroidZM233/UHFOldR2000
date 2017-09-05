@@ -43,7 +43,7 @@ public class FLX_QiLian implements IUHFService {
     public static int open_Com = 0;
     private inventory_command_thread mInventoryCommandThread = null;
     private get_inventoryData_thread mGetInventoryDataThread;
-//    private Timer timer = new Timer(true);
+    //    private Timer timer = new Timer(true);
 //    private MyTimerTask task;
     private Context mContext;
     private ReadBean mRead;
@@ -119,7 +119,8 @@ public class FLX_QiLian implements IUHFService {
             sUhfPowaer = new UhfPowaer(POWERCTL, 64);
         } else if (Build.VERSION.RELEASE.equals("5.1")) {
             String xinghao = Build.MODEL;
-            if (xinghao.equals("KT80") || xinghao.equals("W6") || xinghao.equals("N80")) {
+            if (xinghao.equals("KT80") || xinghao.equals("W6") || xinghao.equals("N80")
+                    || xinghao.equals("FC-PK80") || xinghao.equals("FC-K80")) {
                 sUhfPowaer = new UhfPowaer(POWERCTL, 119);
             } else if (xinghao.equals("KT55")) {
                 sUhfPowaer = new UhfPowaer(POWERCTL, 88);
@@ -412,7 +413,7 @@ public class FLX_QiLian implements IUHFService {
      * 启用掩码：返回值0：为成功，其他均为失败 注意：1、当需要启用掩码时，注意当掩码长度为0时，掩码启用无效的，相当于取消了掩码 2、设置掩码（掩码长度不为0的）成功后，在不退出程序，不执行第一条的情况下，该掩码一直有效。
      * 3、取消掩码：应设置掩码长度为0，并在启用掩码状态读取一次，本模块无取消掩码函数
      */
-    public int select_card(int bank,byte[] epc, boolean mFlag) {
+    public int select_card(int bank, byte[] epc, boolean mFlag) {
         try {
             int epc_area = bank;//1:为EPC区域。2：为TID区域。3：为USER区域。
             int epc_add = 2;
@@ -443,9 +444,9 @@ public class FLX_QiLian implements IUHFService {
         }
     }
 
-    public int select_card(int bank,String epc, boolean mFlag) {
+    public int select_card(int bank, String epc, boolean mFlag) {
         byte[] writeByte = ByteCharStrUtils.toByteArray(epc);
-        if (select_card(bank,writeByte, mFlag) != 0) {
+        if (select_card(bank, writeByte, mFlag) != 0) {
             return -1;
         }
         return 0;

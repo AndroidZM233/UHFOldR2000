@@ -105,8 +105,8 @@ public class MainActivity extends Activity implements OnClickListener {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onPause() {
+        super.onPause();
         try {
             if (iuhfService != null) {
                 iuhfService.CloseDev();
@@ -148,6 +148,7 @@ public class MainActivity extends Activity implements OnClickListener {
                     .setText(R.string.Status_Write_Card_Ok);
         }
     }
+
 
     private void newWakeLock() {
         init_progress++;

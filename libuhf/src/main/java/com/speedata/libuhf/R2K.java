@@ -208,7 +208,8 @@ public class R2K implements IUHFService {
         } else if (Build.VERSION.RELEASE.equals("5.1")) {
             String xinghao = Build.MODEL;
             if (xinghao.equals("KT80") || xinghao.equals("W6") || xinghao.equals("N80")
-                    || xinghao.equals("Biowolf LE")) {
+                    || xinghao.equals("Biowolf LE") || xinghao.equals("FC-PK80")
+                    || xinghao.equals("FC-K80")) {
                 try {
                     pw = new DeviceControl(DeviceControl.PowerType.MAIN, 119);
                 } catch (IOException e) {
@@ -253,19 +254,6 @@ public class R2K implements IUHFService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        fd = pw.PowerOnDevice();
-//        if (fd != 0) {
-//            Log.e("r2000_kt45", "power on returns null");
-//            return -1;
-//        }
-//        try {
-//            Thread.sleep(1000);
-//        } catch (InterruptedException e) {
-//        }
-//        Log.d("r2000_kt45", "power ok");
-//        getLinkage().Radio_RetrieveAttache();
-//        getLinkage().Radio_ConnectTo();
-
         SystemClock.sleep(100);
         getLinkage().Radio_Initialization();
         int result = getLinkage().open_serial(SERIALPORT);
@@ -275,23 +263,11 @@ public class R2K implements IUHFService {
         } else {
             return -1;
         }
-//        return 0;
-//        if (fd != Result.RFID_STATUS_OK.getValue()) {
-//            Log.e("r2000_kt45", "native open returns null");
-//            pw.PowerOffDevice();
-//            return -1;
-//        }
-//        Log.d("r2000_kt45", "init ok");
-//        fd = lk.open_serial(SERIALPORT);
-//        if (fd != Result.RFID_STATUS_OK.getValue()) {
-//            Log.e("r2000_kt45", "open serial port returns null");
-//            pw.PowerOffDevice();
-//        }
-//        Log.d("r2000_kt45", "serial ok");
 
     }
 
     private boolean isFirst = true;
+
 
     public void CloseDev() {
         getLinkage().close_serial();
@@ -309,7 +285,7 @@ public class R2K implements IUHFService {
                 e.printStackTrace();
             }
         }
-        lk = null;
+//        lk = null;
 
 //        Log.d("s_start", String.valueOf(System.currentTimeMillis()));
 //        lk.close_serial();
@@ -948,12 +924,12 @@ public class R2K implements IUHFService {
     private volatile int flag = 0;
 
     @Override
-    public int select_card(int bank,byte[] epc, boolean mFlag) {
+    public int select_card(int bank, byte[] epc, boolean mFlag) {
         if (mFlag) {
             if (epc == null) {
                 return -1;
             }
-            int rv = SetMask(getLinkage(), epc, epc.length * 2,bank);
+            int rv = SetMask(getLinkage(), epc, epc.length * 2, bank);
             if (rv != 0) {
                 Log.e("r2000_kt45", "SetMask failed");
                 return -1;
@@ -965,9 +941,9 @@ public class R2K implements IUHFService {
         return 0;
     }
 
-    public int select_card(int bank,String epc, boolean mFlag) {
+    public int select_card(int bank, String epc, boolean mFlag) {
         byte[] writeByte = ByteCharStrUtils.toByteArray(epc);
-        if (select_card(bank,writeByte, mFlag) != 0) {
+        if (select_card(bank, writeByte, mFlag) != 0) {
             return -1;
         }
         return 0;
@@ -1004,7 +980,7 @@ public class R2K implements IUHFService {
         }
     }
 
-    private int SetMask(Linkage link, byte[] bytetemp, int length,int bank) {
+    private int SetMask(Linkage link, byte[] bytetemp, int length, int bank) {
         int status = Result.RFID_STATUS_OK.getValue();
         status = link.Radio_SetCurrentSingulationAlgorithm(0);
         if (status != Result.RFID_STATUS_OK.getValue())

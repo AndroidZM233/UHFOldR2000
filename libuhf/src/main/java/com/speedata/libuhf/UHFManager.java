@@ -162,7 +162,8 @@ public class UHFManager {
             } else if (Build.VERSION.RELEASE.equals("5.1")) {
                 String xinghao = Build.MODEL;
                 if (xinghao.equals("KT80") || xinghao.equals("W6") || xinghao.equals("N80")
-                        || xinghao.equals("Biowolf LE")) {
+                        || xinghao.equals("Biowolf LE")||xinghao.equals("FC-PK80")
+                        ||xinghao.equals("FC-K80")) {
                     powerOn(DeviceControl.PowerType.MAIN, 119);
                 } else if (xinghao.equals("KT55")) {
                     String readEm55 = readEm55();
