@@ -209,7 +209,7 @@ public class R2K implements IUHFService {
             String xinghao = Build.MODEL;
             if (xinghao.equals("KT80") || xinghao.equals("W6") || xinghao.equals("N80")
                     || xinghao.equals("Biowolf LE") || xinghao.equals("FC-PK80")
-                    || xinghao.equals("FC-K80")) {
+                    || xinghao.equals("FC-K80") || xinghao.equals("T80")) {
                 try {
                     pw = new DeviceControl(DeviceControl.PowerType.MAIN, 119);
                 } catch (IOException e) {
@@ -254,7 +254,7 @@ public class R2K implements IUHFService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        SystemClock.sleep(100);
+        SystemClock.sleep(200);
         getLinkage().Radio_Initialization();
         int result = getLinkage().open_serial(SERIALPORT);
 
@@ -271,6 +271,7 @@ public class R2K implements IUHFService {
 
     public void CloseDev() {
         getLinkage().close_serial();
+        SystemClock.sleep(200);
         getLinkage().DestroyRadioFuncIntegration();
         if (ConfigUtils.isConfigFileExists() && !CommonUtils.subDeviceType().contains("55")) {
             try {
@@ -925,20 +926,25 @@ public class R2K implements IUHFService {
 
     @Override
     public int select_card(int bank, byte[] epc, boolean mFlag) {
-        if (mFlag) {
-            if (epc == null) {
-                return -1;
+        try {
+            if (mFlag) {
+                if (epc == null) {
+                    return -1;
+                }
+                int rv = SetMask(getLinkage(), epc, epc.length * 2, bank);
+                if (rv != 0) {
+                    Log.e("r2000_kt45", "SetMask failed");
+                    return -1;
+                }
+                flag = 1;
+            } else {
+                flag = 0;
             }
-            int rv = SetMask(getLinkage(), epc, epc.length * 2, bank);
-            if (rv != 0) {
-                Log.e("r2000_kt45", "SetMask failed");
-                return -1;
-            }
-            flag = 1;
-        } else {
-            flag = 0;
+            return 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
         }
-        return 0;
     }
 
     public int select_card(int bank, String epc, boolean mFlag) {
@@ -1016,7 +1022,7 @@ public class R2K implements IUHFService {
         // count
         selectCriteria.mask_count = count;
         // mask
-        for (int i = 0; i < bytetemp.length; i++) {
+        for (int i = 0; i < bytetemp.length - 1; i++) {
             selectCriteria.mask_mask[i] = bytetemp[i];
         }
         // target

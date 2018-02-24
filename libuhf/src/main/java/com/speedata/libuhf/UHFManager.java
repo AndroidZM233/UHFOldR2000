@@ -87,18 +87,24 @@ public class UHFManager {
             // TODO Auto-generated method stub
             //判断它是否是为电量变化的Broadcast Action
             if (Intent.ACTION_BATTERY_CHANGED.equals(intent.getAction())) {
-                //获取当前电量
-                int level = intent.getIntExtra("level", 0);
-                if (level < 20) {
-                    iuhfService.CloseDev();
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(mContext, "电量低禁用超高频", Toast.LENGTH_LONG).show();
+                try {
+                    //获取当前电量
+                    int level = intent.getIntExtra("level", 0);
+                    if (level < 20) {
+                        if (iuhfService != null) {
+                            iuhfService.CloseDev();
                         }
-                    });
+                        Handler handler = new Handler(Looper.getMainLooper());
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(mContext, "Low power deactivate UHF", Toast.LENGTH_LONG).show();
+                            }
+                        });
 
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -162,8 +168,8 @@ public class UHFManager {
             } else if (Build.VERSION.RELEASE.equals("5.1")) {
                 String xinghao = Build.MODEL;
                 if (xinghao.equals("KT80") || xinghao.equals("W6") || xinghao.equals("N80")
-                        || xinghao.equals("Biowolf LE")||xinghao.equals("FC-PK80")
-                        ||xinghao.equals("FC-K80")) {
+                        || xinghao.equals("Biowolf LE") || xinghao.equals("FC-PK80")
+                        || xinghao.equals("FC-K80") || xinghao.equals("T80")) {
                     powerOn(DeviceControl.PowerType.MAIN, 119);
                 } else if (xinghao.equals("KT55")) {
                     String readEm55 = readEm55();

@@ -120,7 +120,7 @@ public class FLX_QiLian implements IUHFService {
         } else if (Build.VERSION.RELEASE.equals("5.1")) {
             String xinghao = Build.MODEL;
             if (xinghao.equals("KT80") || xinghao.equals("W6") || xinghao.equals("N80")
-                    || xinghao.equals("FC-PK80") || xinghao.equals("FC-K80")) {
+                    || xinghao.equals("FC-PK80") || xinghao.equals("FC-K80") || xinghao.equals("T80")) {
                 sUhfPowaer = new UhfPowaer(POWERCTL, 119);
             } else if (xinghao.equals("KT55")) {
                 sUhfPowaer = new UhfPowaer(POWERCTL, 88);

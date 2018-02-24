@@ -155,7 +155,7 @@ public class XinLianQilian implements IUHFService {
                     return -1;
                 }
             } else if (xinghao.equals("KT80") || xinghao.equals("W6") || xinghao.equals("N80")
-                    ||xinghao.equals("FC-PK80") ||xinghao.equals("FC-K80")) {
+                    ||xinghao.equals("FC-PK80") ||xinghao.equals("FC-K80")|| xinghao.equals("T80")) {
                 try {
                     deviceControl = new DeviceControl(DeviceControl.PowerType.MAIN, 119);
                     deviceControl.PowerOnDevice();
