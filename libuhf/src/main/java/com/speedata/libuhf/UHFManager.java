@@ -90,7 +90,7 @@ public class UHFManager {
                 try {
                     //获取当前电量
                     int level = intent.getIntExtra("level", 0);
-                    if (level < 20) {
+                    if (level < 10) {
                         if (iuhfService != null) {
                             iuhfService.CloseDev();
                         }
