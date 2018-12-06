@@ -18,7 +18,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            shrinkResources true  //去除无用的资源
+            shrinkResources false  //去除无用的资源
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
